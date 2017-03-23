@@ -790,6 +790,59 @@ static void s3c_nand_write_page_4bit(struct mtd_info *mtd, struct nand_chip *chi
 	chip->write_buf(mtd, chip->oob_poi, mtd->oobsize);
 }
 #endif
+void select_chip(void)
+{
+	unsigned int cur =readl(NFCONT);
+	cur &= ~(1<<1);
+	writel(cur, NFCONT);
+}
+
+void delselect_chip(void)
+{
+	unsigned int cur =readl(NFCONT);
+	cur |= (1<<1);
+	writel(cur, NFCONT);
+}
+
+void clear_RnB(void)
+{
+	unsigned int cur =readl(NFSTAT);
+	cur |= (1<<4);
+	writel(cur, NFSTAT);
+}
+
+void send_cmd(unsigned char cmd)
+{
+	writel(cmd, NFCMMD);
+}
+
+void send_addr(unsigned char addr)
+{
+	writel(addr, NFADDR);
+}
+
+void wait_RnB(void)
+{
+	while(!(readl(NFSTAT)&0x1));
+}
+
+void nand_reset(void)
+{
+	//选择nandflash
+	select_chip();
+	
+	//清除RB
+	clear_RnB();
+	
+	//发送0xff
+	send_cmd(0xff);
+	
+	//等待RB信号
+	wait_RnB();
+	
+	//取消选择nandflash
+	delselect_chip();
+}
 
 /*
  * Board-specific NAND initialization. The following members of the
@@ -811,6 +864,8 @@ static void s3c_nand_write_page_4bit(struct mtd_info *mtd, struct nand_chip *chi
  */
 void board_nand_init(struct nand_chip *nand)
 {
+	unsigned int cur;
+
 #if defined(CFG_NAND_HWECC)
 	int i;
 	u_char tmp;
@@ -841,6 +896,21 @@ void board_nand_init(struct nand_chip *nand)
 	nand->ecc.hwctl		= s3c_nand_enable_hwecc;
 	nand->ecc.calculate	= s3c_nand_calculate_ecc;
 	nand->ecc.correct	= s3c_nand_correct_data;
+
+	//add by CHB
+	//初始化NFCONF
+	cur = readl(NFCONF);
+	cur &= ~((1<<12)|(2<<8)|(1<<4));
+   	cur |= (1<<12)|(2<<8)|(1<<4);
+	writel(cur, NFCONF);
+	
+	//初始化NFCONT
+	cur = readl(NFCONT);
+	cur |= (0x1<<0) | (0x1<<1);
+	writel(cur, NFCONT);
+
+	//这里必须要复位一下，否则无法读出ID
+	nand_reset();
 	
 	s3c_nand_hwcontrol(0, NAND_CMD_READID, NAND_NCE | NAND_CLE | NAND_CTRL_CHANGE);
 	s3c_nand_hwcontrol(0, 0x00, NAND_CTRL_CHANGE | NAND_NCE | NAND_ALE);
