@@ -682,12 +682,18 @@ int do_nand(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 					} else {
 						unsigned int i;
 						ret = 0;
-						for (i = 0; i < size; i += NandBlockSizeInByte) {
-							int len = size - i;
-							if (len > NandBlockSizeInByte) {
-								len = NandBlockSizeInByte;
+						//add by CHB,if write uboot.bin，use FriendlyARMWriteNandMlcBoot
+                        			if(off == 0){
+                            				printf("FriendlyARMWriteNandMlcBoot\n");
+                            			ret = FriendlyARMWriteNandMlcBoot((u_char *)addr, size, 1);
+                        			}else{
+							for (i = 0; i < size; i += NandBlockSizeInByte) {
+								int len = size - i;
+								if (len > NandBlockSizeInByte) {
+									len = NandBlockSizeInByte;
+								}
+								FriendlyARMWriteNand(((u_char *)addr) + i, len, off + i, NandBlockSizeInByte);
 							}
-							FriendlyARMWriteNand(((u_char *)addr) + i, len, off + i, NandBlockSizeInByte);
 						}
 					}
 				} else {
