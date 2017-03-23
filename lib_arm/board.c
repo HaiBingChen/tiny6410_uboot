@@ -470,6 +470,12 @@ extern int eth_set_mac(bd_t * bd);
 #endif
 	eth_initialize(gd->bd);
 #endif
+	setenv("ipaddr", "192.168.2.3");
+    	setenv("serverip", "192.168.2.2");
+    	setenv("gatewayip", "192.168.2.1");
+    	setenv("bootcmd", "nand read c0008000 400000 500000; bootm c0008000");
+    	setenv("bootargs", "noinitrd console=ttySAC0,115200 init=/init root=/dev/nfs rw nfsroot=192.168.2.2:/home/chen/friendly_arm_source/filesystem/rootfs,proto=tcp,nfsvers=3 ip=192.168.2.3:192.168.2.2:192.168.1.1:255.255.255.0::eth0:off");
+
 	/* main_loop() can return to retry autoboot, if so just run it again. */
 	for (;;) {
 		main_loop ();
