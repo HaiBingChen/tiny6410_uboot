@@ -350,6 +350,7 @@ defined(CONFIG_MINI6410)
 	onenand_init();		/* go init the One-NAND */
 #endif
 
+#if 0
 #if defined(CONFIG_BOOT_MOVINAND)
 	puts ("MMC:     ");
 
@@ -361,6 +362,7 @@ defined(CONFIG_MINI6410)
 		movi_init();
 	}
 #endif
+#endif 
 
 #else
 
